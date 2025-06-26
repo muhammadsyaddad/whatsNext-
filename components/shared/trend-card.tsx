@@ -18,7 +18,7 @@ interface MarketplaceData {
 interface TrendCardProps {
   title: string;
   volume: string;
-  growth: string;
+  growth: string;d
   description: string;
   status: "exploding" | "regular";
   trendData: { year: string; volume: number }[];
