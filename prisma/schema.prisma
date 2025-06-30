@@ -6,68 +6,60 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  USER
+// --- BAGIAN AUTENTIKASI (Sudah Ada) ---
+
+model User {
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String?   @unique
+  emailVerified        DateTime? @map("emailVerified")
+  image                String?
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  role                 UserRole  @default(USER)
+  accounts             Account[]
+  sessions             Session[]
+  stripeCustomerId     String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  stripePriceId        String?   @map("stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
+
+  @@map("users")
 }
 
 model Account {
-  id                String   @id @default(cuid())
-  userId            String
+  id                String  @id @default(cuid())
+  userId            String  @map("userId")
   type              String
   provider          String
-  providerAccountId String
-  refresh_token     String?  @db.Text
-  access_token      String?  @db.Text
+  providerAccountId String  @map("providerAccountId")
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?  @db.Text
+  id_token          String?
   session_state     String?
-  createdAt         DateTime @default(now()) @map(name: "created_at")
-  updatedAt         DateTime @default(now()) @map(name: "updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId])
-  @@map(name: "accounts")
+  @@map("accounts")
 }
 
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
+  sessionToken String   @unique @map("sessionToken")
+  userId       String   @map("userId")
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@map(name: "sessions")
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now()) @map(name: "created_at")
-  updatedAt     DateTime  @default(now()) @map(name: "updated_at")
-  role          UserRole  @default(USER)
-
-  accounts Account[]
-  sessions Session[]
-
-  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
-  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
-  stripePriceId          String?   @map(name: "stripe_price_id")
-  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
-
-  @@map(name: "users")
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -76,5 +68,24 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-  @@map(name: "verification_tokens")
+  @@map("verification_tokens")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+
+// --- BAGIAN DATA TREN (Yang Baru Kita Tambahkan) ---
+
+model trending_products {
+  id          String    @id @default(cuid())
+  title       String    @unique
+  category    String?
+  description String?
+  status      String?   @default("new")
+  image_url   String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 }

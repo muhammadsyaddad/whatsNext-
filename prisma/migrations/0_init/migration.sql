@@ -66,3 +66,13 @@ CREATE TABLE verification_tokens (
     UNIQUE (identifier, token)
 );
 
+model trending_products {
+  id          String   @id @default(cuid())
+  title       String   @unique
+  category    String?
+  description String?
+  status      String?  @default("new")
+  image_url   String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
